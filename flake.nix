@@ -1,8 +1,8 @@
 {
-  description = "nix-darwin system flake";
+  description = "meiji163 nix-darwin system flake";
 
   inputs = {
-    # brew version issue: https://github.com/LnL7/nix-darwin/issues/1391
+    # main has brew version issue: https://github.com/LnL7/nix-darwin/issues/1391
     # nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     nix-homebrew.url =
       "git+https://github.com/zhaofengli/nix-homebrew?ref=refs/pull/71/merge";
@@ -31,13 +31,16 @@
           nixfmt-classic
           neofetch
           vim
+          zsh
           tmux
           mkalias
+          syncthing
           zathura
           alacritty
           brave
           keepassxc
         ];
+        environment.pathsToLink = [ "/share/zsh" ];
 
         ids.gids.nixbld = 30000;
         # Necessary for using flakes on this system.
@@ -68,11 +71,17 @@
                 { app = "/Applications/Slack.app"; }
                 { app = "/Applications/Google Chrome.app"; }
                 { app = "${pkgs.alacritty}/Applications/Alacritty.App"; }
-                {
-                  app =
-                    "/Users/meiji163/homebrew/Cellar/emacs-plus@29/29.4/Emacs.app";
-                }
               ];
+            };
+            finder = {
+              AppleShowAllExtensions = true;
+              ShowPathbar = true;
+              FXEnableExtensionChangeWarning = false;
+            };
+            # tab between form controls and F-row that behaves as F1-F12
+            NSGlobalDomain = {
+              AppleKeyboardUIMode = 3;
+              "com.apple.keyboard.fnState" = true;
             };
           };
 
@@ -103,6 +112,7 @@
             "docker"
             "xquartz"
             "miniforge"
+            "vlc"
           ];
           # These app IDs are from using the mas CLI app
           # mas = mac app store
@@ -140,7 +150,7 @@
           # so they're indexed by spotlight
           mac-app-util.darwinModules.default
           home-manager.darwinModules.home-manager
-          ({ pkgs, config, inputs, ... }: {
+          ({ pkgs, lib, config, inputs, ... }: {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.verbose = true;
