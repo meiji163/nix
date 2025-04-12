@@ -53,9 +53,10 @@ in {
     jq
     yq
     htop
+    tree
+    gnugrep
     ripgrep
     ripgrep-all
-    pandoc
     zstd
     ispell
     gnupg
@@ -63,6 +64,7 @@ in {
 
     ## backup
     restic
+    rsync
 
     ## font
     emacs-all-the-icons-fonts
@@ -73,57 +75,70 @@ in {
     go
     gopls
     gotools
+    golangci-lint
     delve
     lldb
-    # haskellPackages.cabal-install
-    # haskellPackages.hoogle
-    # haskellPackages.hpack
-    # haskellPackages.implicit-hie
-    # haskellPackages.stack
+    nodejs_23
+    vscode
 
-    niv
+    # niv
     docker
     colima
     gh
     kustomize
-    mysql84
-    sqlite
+    qemu
 
     ## shell
     zsh
     oh-my-zsh
     nnn
     shfmt
-    rbenv
+
+    ## database
+    mysql84
+    sqlite
+    sysbench
 
     (aspellWithDicts (d: [ d.en d.sv ]))
+
+    ## documents
     ghostscript
     tetex
     poppler
     mu
+    pandoc
     wordnet
-    rsync
   ];
 
   home.shell.enableZshIntegration = true;
   home.shellAliases = {
     switch = "darwin-rebuild switch --flake ~/nix";
     emg = "emacsclient -c -n -a 'emacs'";
-    ll = "ls -l";
+    ls = "ls --color";
+    ll = "ls -l --color";
   };
 
   programs.zsh = {
     enable = true;
     enableCompletion = true;
     autosuggestion.enable = true;
+    zprof.enable = false;
+
+    completionInit = ''
+      if [[ -n $(print ~/.zcompdump(Nmh+24)) ]] {
+        # Regenerate completions because the dump file hasn't been modified within the last 24 hours
+        compinit
+      } else {
+        # Reuse the existing completions file
+        compinit -C
+      }
+    '';
 
     history = {
       size = 1000000000;
       path = "$HOME/.cache/.zsh_history";
       append = true;
-      findNoDups = true;
       extended = true;
-      expireDuplicatesFirst = true;
       share = true;
     };
 
@@ -149,14 +164,10 @@ in {
       ''
     ];
 
-    oh-my-zsh = {
-      enable = true;
-      plugins = [ "git" ];
-    };
     zplug = {
       enable = true;
       plugins = [
-        { name = "zsh-users/zsh-autosuggestions"; }
+        # { name = "zsh-users/zsh-autosuggestions"; }
         { name = "zsh-users/zsh-syntax-highlighting"; }
         {
           name = "mafredri/zsh-async";
@@ -170,22 +181,22 @@ in {
     };
   };
 
-  programs.rbenv = {
-    enable = true;
-    enableZshIntegration = true;
-    plugins = [{
-      name = "ruby-build";
-      # find sha256 of release:
-      # nix hash convert --hash-algo sha256 --to sri $(nix-prefetch-url --unpack https://github.com/rbenv/ruby-build/archive/refs/tags/v20250318.tar.gz)
-      src = pkgs.fetchFromGitHub {
-        owner = "rbenv";
-        repo = "ruby-build";
-        rev = "v20250318";
-        sha256 = "sha256-QrMkFM4ntzvO319kcIZeXUETNG3j27spNlze6S4jX/U=";
-      };
+  # programs.rbenv = {
+  #   enable = true;
+  #   enableZshIntegration = true;
+  #   plugins = [{
+  #     name = "ruby-build";
+  #     # find sha256 of release:
+  #     # nix hash convert --hash-algo sha256 --to sri $(nix-prefetch-url --unpack https://github.com/rbenv/ruby-build/archive/refs/tags/v20250318.tar.gz)
+  #     src = pkgs.fetchFromGitHub {
+  #       owner = "rbenv";
+  #       repo = "ruby-build";
+  #       rev = "v20250318";
+  #       sha256 = "sha256-QrMkFM4ntzvO319kcIZeXUETNG3j27spNlze6S4jX/U=";
+  #     };
 
-    }];
-  };
+  #   }];
+  # };
 
   programs.fzf = {
     enable = true;

@@ -2,11 +2,7 @@
   description = "meiji163 nix-darwin system flake";
 
   inputs = {
-    # main has brew version issue: https://github.com/LnL7/nix-darwin/issues/1391
-    # nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
-    nix-homebrew.url =
-      "git+https://github.com/zhaofengli/nix-homebrew?ref=refs/pull/71/merge";
-
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
@@ -29,6 +25,7 @@
         # $ nix-env -qaP | grep wget
         environment.systemPackages = with pkgs; [
           nixfmt-classic
+          cowsay
           neofetch
           vim
           zsh
