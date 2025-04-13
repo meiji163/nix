@@ -1,139 +1,43 @@
 {
-  description = "meiji163 nix-darwin system flake";
+  description = "Cross-platform Nix configuration";
 
   inputs = {
-    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    # Shared inputs
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nix-darwin = {
-      url = "github:LnL7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Darwin-specific inputs
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     mac-app-util.url = "github:hraban/mac-app-util";
+
+    # NixOS-specific inputs
+    # Add any NixOS-specific inputs here if needed
   };
 
-  outputs = inputs@{ self, nixpkgs, mac-app-util, nix-darwin, nix-homebrew
-    , home-manager, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, nix-darwin, nix-homebrew, mac-app-util, ... }:
     let
-      configuration = { pkgs, config, ... }: {
-
-        nixpkgs.config.allowUnfree = true;
-        # List packages installed in system profile. To search by name, run:
-        # $ nix-env -qaP | grep wget
-        environment.systemPackages = with pkgs; [
-          nixfmt-classic
-          cowsay
-          neofetch
-          vim
-          zsh
-          tmux
-          mkalias
-          syncthing
-          zathura
-          alacritty
-          brave
-          keepassxc
-        ];
-        environment.pathsToLink = [ "/share/zsh" ];
-
-        ids.gids.nixbld = 30000;
-        # Necessary for using flakes on this system.
-        nix.settings.experimental-features = "nix-command flakes";
-        users.users.meiji163 = {
-          name = "meiji163";
-          home = "/Users/meiji163";
-        };
-
-        system = {
-          # activationScripts are executed every time you boot the system or run `nixos-rebuild` / `darwin-rebuild`.
-          activationScripts.postUserActivation.text = ''
-            # activateSettings -u will reload the settings from the database and apply them to the current session,
-            # so we do not need to logout and login again to make the changes take effect.
-            /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
-          '';
-
-          defaults = {
-            menuExtraClock.Show24Hour = true;
-            dock = {
-              autohide = true;
-              autohide-delay = 0.0;
-              show-recents = false;
-              tilesize = 75;
-              orientation = "bottom";
-              persistent-apps = [
-                { app = "/System/Applications/Launchpad.app"; }
-                { app = "/Applications/Slack.app"; }
-                { app = "/Applications/Google Chrome.app"; }
-                { app = "${pkgs.alacritty}/Applications/Alacritty.App"; }
-              ];
-            };
-            finder = {
-              AppleShowAllExtensions = true;
-              ShowPathbar = true;
-              FXEnableExtensionChangeWarning = false;
-            };
-            # tab between form controls and F-row that behaves as F1-F12
-            NSGlobalDomain = {
-              AppleKeyboardUIMode = 3;
-              "com.apple.keyboard.fnState" = true;
-            };
-          };
-
-          keyboard = {
-            enableKeyMapping = true;
-            remapCapsLockToControl = true;
-          };
-
-          # Set Git commit hash for darwin-version.
-          configurationRevision = self.rev or self.dirtyRev or null;
-
-          # Used for backwards compatibility, please read the changelog before changing.
-          # $ darwin-rebuild changelog
-          stateVersion = 6;
-        };
-
-        fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
-
-        homebrew = {
-          enable = true;
-          # onActivation.cleanup = "uninstall";
-          taps = [ ];
-          brews = [ "mas" "wireshark" ];
-          casks = [
-            "maccy"
-            "hammerspoon"
-            "viscosity"
-            "docker"
-            "xquartz"
-            "miniforge"
-            "vlc"
-          ];
-          # These app IDs are from using the mas CLI app
-          # mas = mac app store
-          # https://github.com/mas-cli/mas
-          #
-          # $ nix shell nixpkgs#mas
-          # $ mas search <app name>
-          #
-          masApps = {
-            "wireguard" = 1451685025;
-            "localsend" = 1661733229;
-          };
-        };
-
-        # The platform the configuration will be used on.
-        nixpkgs.hostPlatform = "aarch64-darwin";
-
-        security.pam.services.sudo_local.touchIdAuth = true;
-      };
-      homeconfig = import ./home.nix;
-    in {
+      # System types to support
+      supportedSystems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+      
+      # Helper function to generate an attribute set for each supported system
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      
+      # Import home configuration
+      homeConfig = import ./home;
+    in
+    {
+      # Darwin configurations
       darwinConfigurations."Meijkes-MacBook-Pro" = nix-darwin.lib.darwinSystem {
+        system = "aarch64-darwin";
         modules = [
-          configuration
+          ./hosts/macbook
           nix-homebrew.darwinModules.nix-homebrew
           {
             nix-homebrew = {
@@ -143,20 +47,38 @@
               autoMigrate = true;
             };
           }
-          # mac-app-util creates wrappers for apps installed by nix
-          # so they're indexed by spotlight
           mac-app-util.darwinModules.default
           home-manager.darwinModules.home-manager
-          ({ pkgs, lib, config, inputs, ... }: {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.verbose = true;
-            home-manager.users.meiji163 = homeconfig;
-            home-manager.sharedModules =
-              [ mac-app-util.homeManagerModules.default ];
-          })
-
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              verbose = true;
+              users.meiji163 = homeConfig;
+              sharedModules = [
+                mac-app-util.homeManagerModules.default
+              ];
+            };
+          }
         ];
+      };
+
+      # Home configurations for use with standalone home-manager
+      # Useful for non-NixOS Linux distributions like Ubuntu
+      homeConfigurations = {
+        "meiji163@ubuntu" = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          modules = [
+            homeConfig
+            {
+              home = {
+                username = "meiji163";
+                homeDirectory = "/home/meiji163";
+                stateVersion = "24.11";
+              };
+            }
+          ];
+        };
       };
     };
 }
