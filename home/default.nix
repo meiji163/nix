@@ -35,7 +35,8 @@ in
     ripgrep
     ripgrep-all
     gnupg
-    
+    tmux
+
     # Development
     nodejs_23
     gh
@@ -45,6 +46,7 @@ in
     # macOS-specific packages
   ] else [
     # Linux-specific packages
+    # alacritty
   ]);
 
   # Use configs imported above
@@ -62,7 +64,7 @@ in
     emg = "emacsclient -c -n -a 'emacs'";
   } else {
     # Linux-specific aliases
-    switch = "sudo nixos-rebuild switch --flake ~/nix";
+    switch = "sudo home-manager switch --flake ~/nix#meiji163@ubuntu";
   });
 
   home.sessionVariables = { 

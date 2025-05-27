@@ -64,12 +64,11 @@
       };
 
       # Home configurations for use with standalone home-manager
-      # Useful for non-NixOS Linux distributions like Ubuntu
       homeConfigurations = {
         "meiji163@ubuntu" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           modules = [
-            homeConfig
+            ./home/default.nix
             {
               home = {
                 username = "meiji163";

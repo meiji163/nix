@@ -32,6 +32,7 @@
     vim
     wget
     curl
+    rsycn
     git
     tmux
     zsh
