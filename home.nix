@@ -84,7 +84,6 @@ in
     # niv
     docker
     colima
-    gh
     kustomize
     qemu
 
@@ -171,11 +170,29 @@ in
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 
-  programs.git = {
+  programs.gh = {
     enable = true;
-    userEmail = "me@meiji163.xyz";
-    userName = "meiji163";
+    gitCredentialHelper = {
+      enable = true;
+      hosts = [ "https://github.com" ];
+    };
+    settings = {
+      git_protocol = "https";
+      prompt = "enabled";
+      editor = "vim";
+    };
+    extensions = with pkgs; [
+      gh-dash
+      gh-screensaver
+      gh-poi
+    ];
   };
+
+  # programs.git = {
+  #   enable = true;
+  #   userEmail = "me@meiji163.xyz";
+  #   userName = "meiji163";
+  # };
 
   programs.chromium = {
     enable = true;
