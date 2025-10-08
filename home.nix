@@ -1,11 +1,10 @@
 { pkgs, lib, config, ... }:
 let
-  emacs-overlay = import (fetchTarball {
-    url =
-      "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
-    sha256 = "1jppksrfvbk5ypiqdz4cddxdl8z6zyzdb2srq8fcffr327ld5jj2";
-  });
-  my-emacs = pkgs.emacs30.override {
+  #emacs-overlay = import (fetchTarball {
+  #  url = "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
+  #});
+  #emacs-overlay.url = "github:nix-community/emacs-overlay";
+  my-emacs = pkgs.emacs.override {
     withNativeCompilation = true;
     withSQLite3 = true;
     withTreeSitter = true;
@@ -17,7 +16,6 @@ let
         pkgs.mu
         vterm
         multi-vterm
-        pdf-tools
         treesit-grammars.with-all-grammars
       ]);
 in {
@@ -46,7 +44,9 @@ in {
     binutils
     coreutils
     curl
+    wget
     gawk
+    socat
     fd
     fzf
     bat
@@ -59,12 +59,17 @@ in {
     ripgrep-all
     zstd
     ispell
+    shellcheck
     gnupg
+    ffmpeg
     inetutils
+
+    ntfy
 
     ## backup
     restic
     rsync
+    localsend
 
     ## font
     emacs-all-the-icons-fonts
@@ -78,7 +83,7 @@ in {
     golangci-lint
     delve
     lldb
-    nodejs_23
+    nodejs_24
     vscode
 
     # niv
@@ -144,7 +149,7 @@ in {
 
     historySubstringSearch = { enable = true; };
 
-    initExtra = lib.strings.concatStringsSep "\n" [
+    initContent = lib.strings.concatStringsSep "\n" [
       ''
         # enable cd on ^G for nnn
         nnn() {
@@ -220,6 +225,7 @@ in {
     package = my-emacs-with-packages;
   };
 
+  # doesn't really work:
   # home.activation.installDoomEmacs = lib.hm.dag.entryAfter [ "writeBoundary" ]
   #   "${pkgs.rsync}/bin/rsync -avz --chmod=D2755,F744 ${doomemacs}/ ${config.xdg.configHome}/emacs/";
 
