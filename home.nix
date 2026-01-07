@@ -77,6 +77,8 @@ in {
 
     ## dev
     babashka
+    clojure
+    clojure-lsp
     go
     gopls
     gotools
@@ -85,6 +87,10 @@ in {
     lldb
     nodejs_24
     vscode
+    cargo
+    typescript
+    typescript-language-server
+    #lua-language-server
 
     # niv
     docker
@@ -113,6 +119,11 @@ in {
     mu
     pandoc
     wordnet
+
+    # finance
+    hledger
+    hledger-ui
+    hledger-web
   ];
 
   home.shell.enableZshIntegration = true;
@@ -121,6 +132,7 @@ in {
     emg = "emacsclient -c -n -a 'emacs'";
     ls = "ls --color";
     ll = "ls -l --color";
+    love = "/Applications/love.app/Contents/MacOS/love";
   };
 
   programs.zsh = {
@@ -166,6 +178,24 @@ in {
       ''
         # doom binary
         export PATH="$PATH:$HOME/.config/emacs/bin"
+      ''
+      ''
+        # hledger
+        export LEDGER_FILE=~/Documents/hledger/journals/main.journal
+      ''
+      ''
+        tssh() {
+            if [ "$(ps -p $(ps -p $$ -o ppid=) -o comm=)" = "tmux" ]; then
+                tmux rename-window "$(echo $* | cut -d . -f 1)"
+                command ssh "$@"
+                tmux set-window-option automatic-rename "on" 1>/dev/null
+            else
+                command ssh "$@"
+            fi
+        }
+      ''
+      ''
+        source "$HOME/.env"
       ''
     ];
 

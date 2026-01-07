@@ -122,10 +122,10 @@
           # $ nix shell nixpkgs#mas
           # $ mas search <app name>
           #
-          masApps = {
-            "wireguard" = 1451685025;
-            "localsend" = 1661733229;
-          };
+          # masApps = {
+          #   "wireguard" = 1451685025;
+          #   "localsend" = 1661733229;
+          # };
         };
 
         # The platform the configuration will be used on.
