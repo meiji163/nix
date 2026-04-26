@@ -114,8 +114,13 @@ in {
 
     ## documents
     ghostscript
-    tetex
-    poppler
+    (pkgs.texlive.combine {
+      inherit (pkgs.texlive)
+        scheme-full # or scheme-small, scheme-medium
+        tikz-cd pgf-go latexmk;
+    })
+
+    poppler-utils
     mu
     pandoc
     wordnet
@@ -133,6 +138,7 @@ in {
     ls = "ls --color";
     ll = "ls -l --color";
     love = "/Applications/love.app/Contents/MacOS/love";
+    sites = "/Users/meiji163/Documents/myscripts/sites.clj";
   };
 
   programs.zsh = {
@@ -264,6 +270,9 @@ in {
     ".vimrc".source = ./vimrc;
     ".tmux.conf".source = ./tmuxrc;
     ".alacritty.toml".source = ./alacritty.toml;
-    ".zathurarc".source = ./zathurarc;
+    ".config/zathura/zathurarc" = {
+      source = ./zathurarc;
+      recursive = true;
+    };
   };
 }
